@@ -26,6 +26,7 @@ dependencies:
 - snap-core
 - bytestring
 - directory
+- filepath
 
 
 ghc-options:
