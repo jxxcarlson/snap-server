@@ -4,7 +4,7 @@ module Main where
 import Snap
 import Snap.Http.Server (httpServe, defaultConfig, setPort)
 import Snap.Core (route, modifyResponse, setContentType)
-import Snap.Util.FileServe (serveDirectory)
+import Snap.Util.FileServe (serveDirectory, serveFile)
 import qualified Data.ByteString.Char8 as B
 import System.FilePath (takeExtension)
 import System.Directory (listDirectory, doesFileExist)
@@ -21,7 +21,7 @@ main = do
                     Nothing -> putStrLn "First argument (port) can't be converted to an integer"
                     Just port -> 
                         httpServe (setPort port defaultConfig) (site serverDirectory)
-            _ -> putStrLn "command takes exactly to args, <port> and <server root directory>"
+            _ -> putStrLn "command takes exactly two args, <port> and <server root directory>"
 
 site :: String -> Snap ()
 site serverDirectory = route [(B.pack "list", (listFilesHandler serverDirectory))
@@ -48,14 +48,7 @@ fileHandler = do
     let filePath = "." ++ B.unpack uri  -- Constructing the file path from URI
     exists <- liftIO $ doesFileExist filePath
     if exists then
-        case takeExtension filePath of
-            ".txt" -> serveAsText filePath
-            ".yaml" -> serveAsText filePath
-            ".md" -> serveAsText filePath
-            ".hs" -> serveAsText filePath
-            ".pdf" -> serveAsPDF filePath
-
-            _      -> pass  -- Fall back to default behavior
+        serveImage filePath
     else
         pass  -- Fall back to default behavior
 
@@ -70,3 +63,25 @@ serveAsPDF filePath = do
     fileContents <- liftIO $ B.readFile filePath
     modifyResponse $ setContentType $ B.pack "application/pdf"
     writeBS fileContents
+
+serveImage :: FilePath -> Snap ()
+serveImage filePath = do
+    let ext = takeExtension filePath
+    case ext of
+        ".png"  -> serveWithMimeType (B.pack "image/png") filePath
+        ".jpg"  -> serveWithMimeType (B.pack "image/jpeg") filePath
+        ".jpeg" -> serveWithMimeType (B.pack "image/jpeg") filePath
+        ".gif"  -> serveWithMimeType (B.pack "image/gif") filePath
+        ".txt"  -> serveAsText filePath
+        ".yaml" -> serveAsText filePath
+        ".md"   -> serveAsText filePath
+        ".hs"   -> serveAsText filePath
+        ".elm"  -> serveAsText filePath
+        ".pdf"  -> serveAsPDF filePath
+        _       -> serveAsText filePath
+        -- _       -> pass
+
+serveWithMimeType :: B.ByteString -> FilePath -> Snap ()
+serveWithMimeType mimeType filePath = do
+    modifyResponse $ setContentType mimeType
+    serveFile filePath
