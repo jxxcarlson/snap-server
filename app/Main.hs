@@ -6,8 +6,8 @@ import Snap.Http.Server (httpServe, defaultConfig, setPort)
 import Snap.Core (route, modifyResponse, setContentType)
 import Snap.Util.FileServe (serveDirectory, serveFile)
 import qualified Data.ByteString.Char8 as B
-import System.FilePath (takeExtension)
-import System.Directory (listDirectory, doesFileExist)
+import System.FilePath (takeExtension, takeFileName, (</>))
+import System.Directory (listDirectory, doesFileExist, doesDirectoryExist)
 import Control.Monad.IO.Class (liftIO)
 import System.Environment (getArgs)
 import Text.Read (readMaybe)
@@ -24,8 +24,11 @@ main = do
             _ -> putStrLn "command takes exactly two args, <port> and <server root directory>"
 
 site :: String -> Snap ()
-site serverDirectory = route [(B.pack "list", (listFilesHandler serverDirectory))
-               , (B.pack "", fileHandler)]
+site serverDirectory = route [ --(B.pack "list", (listFilesHandler serverDirectory))
+                               -- (B.pack "dir", directoryHandler)
+                               (B.pack "", directoryHandler)
+                               --, (B.pack "", fileHandler)
+                              ]
  
 --- Handler to list files in the current directory as clickable links
 listFilesHandler :: String -> Snap ()
@@ -39,6 +42,30 @@ listFilesHandler serverDirectory = do
 -- Function to create an HTML link for a file that opens in a new tab/window
 makeLink :: String -> String
 makeLink file = "<a href='/" ++ file ++ "'>" ++ file ++ "</a><br>"
+
+
+directoryHandler :: Snap ()
+directoryHandler = do
+    rq <- getRequest
+    let dirPath = "." </> B.unpack (rqPathInfo rq)
+    isDir <- liftIO $ doesDirectoryExist dirPath
+    isFile <- liftIO $ doesFileExist dirPath
+    if isDir
+        then do
+            contents <- liftIO $ listDirectory dirPath
+            let links = map (makeLinkD dirPath) contents
+            let html = B.pack $ "<html><body>" ++ unlines links ++ "</body></html>"
+            modifyResponse $ setContentType $ B.pack "text/html; charset=utf-8"
+            writeBS html
+    else if isFile 
+        then do
+            serveImage dirPath
+    else
+            writeBS $ B.pack "Not a directory or directory does not exist."
+
+makeLinkD :: FilePath -> String -> String
+makeLinkD dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++ "</a><br>"
+
 
 
 fileHandler :: Snap ()
