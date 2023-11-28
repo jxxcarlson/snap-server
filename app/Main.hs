@@ -24,28 +24,11 @@ main = do
             _ -> putStrLn "command takes exactly two args, <port> and <server root directory>"
 
 site :: String -> Snap ()
-site serverDirectory = route [ --(B.pack "list", (listFilesHandler serverDirectory))
-                               -- (B.pack "dir", directoryHandler)
-                               (B.pack "", directoryHandler)
-                               --, (B.pack "", fileHandler)
-                              ]
+site serverDirectory = route [ (B.pack "", fileAndDirectoryHandler) ]
  
---- Handler to list files in the current directory as clickable links
-listFilesHandler :: String -> Snap ()
-listFilesHandler serverDirectory = do
-    files <- liftIO (listDirectory serverDirectory)
-    let links = map makeLink files
-    let html = B.pack $ "<html><body>" ++ unlines links ++ "</body></html>"
-    modifyResponse $ setContentType  $ B.pack "text/html; charset=utf-8"
-    writeBS html
 
--- Function to create an HTML link for a file that opens in a new tab/window
-makeLink :: String -> String
-makeLink file = "<a href='/" ++ file ++ "'>" ++ file ++ "</a><br>"
-
-
-directoryHandler :: Snap ()
-directoryHandler = do
+fileAndDirectoryHandler :: Snap ()
+fileAndDirectoryHandler = do
     rq <- getRequest
     let dirPath = "." </> B.unpack (rqPathInfo rq)
     isDir <- liftIO $ doesDirectoryExist dirPath
@@ -53,31 +36,19 @@ directoryHandler = do
     if isDir
         then do
             contents <- liftIO $ listDirectory dirPath
-            let links = map (makeLinkD dirPath) contents
+            let links = map (makeLink dirPath) contents
             let html = B.pack $ "<html><body>" ++ unlines links ++ "</body></html>"
             modifyResponse $ setContentType $ B.pack "text/html; charset=utf-8"
             writeBS html
     else if isFile 
         then do
-            serveImage dirPath
+            serveResource dirPath
     else
             writeBS $ B.pack "Not a directory or directory does not exist."
 
-makeLinkD :: FilePath -> String -> String
-makeLinkD dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++ "</a><br>"
+makeLink :: FilePath -> String -> String
+makeLink dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++ "</a><br>"
 
-
-
-fileHandler :: Snap ()
-fileHandler = do
-    rq <- getRequest
-    let uri = rqURI rq
-    let filePath = "." ++ B.unpack uri  -- Constructing the file path from URI
-    exists <- liftIO $ doesFileExist filePath
-    if exists then
-        serveImage filePath
-    else
-        pass  -- Fall back to default behavior
 
 serveAsText :: FilePath -> Snap ()
 serveAsText filePath = do
@@ -91,8 +62,8 @@ serveAsPDF filePath = do
     modifyResponse $ setContentType $ B.pack "application/pdf"
     writeBS fileContents
 
-serveImage :: FilePath -> Snap ()
-serveImage filePath = do
+serveResource :: FilePath -> Snap ()
+serveResource filePath = do
     let ext = takeExtension filePath
     case ext of
         ".png"  -> serveWithMimeType (B.pack "image/png") filePath
@@ -106,7 +77,7 @@ serveImage filePath = do
         ".elm"  -> serveAsText filePath
         ".pdf"  -> serveAsPDF filePath
         _       -> serveAsText filePath
-        -- _       -> pass
+
 
 serveWithMimeType :: B.ByteString -> FilePath -> Snap ()
 serveWithMimeType mimeType filePath = do
