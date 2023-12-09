@@ -34,13 +34,18 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
+    , case-insensitive
     , directory
     , filepath
+    , network-uri
     , snap
     , snap-core
     , snap-server
+    , text
+    , unordered-containers
   default-language: Haskell2010
 
 executable fileserver-exe
@@ -53,14 +58,19 @@ executable fileserver-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
+    , case-insensitive
     , directory
     , filepath
     , fileserver
+    , network-uri
     , snap
     , snap-core
     , snap-server
+    , text
+    , unordered-containers
   default-language: Haskell2010
 
 test-suite fileserver-test
@@ -74,12 +84,17 @@ test-suite fileserver-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
+    , case-insensitive
     , directory
     , filepath
     , fileserver
+    , network-uri
     , snap
     , snap-core
     , snap-server
+    , text
+    , unordered-containers
   default-language: Haskell2010

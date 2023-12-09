@@ -27,6 +27,11 @@ dependencies:
 - bytestring
 - directory
 - filepath
+- case-insensitive
+- unordered-containers
+- network-uri
+- aeson
+- text
 
 
 ghc-options:
