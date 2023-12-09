@@ -48,7 +48,7 @@ site serverDirectory = route [ (B.pack "", S.method S.OPTIONS handleOptions <|> 
 
 handleOptions :: S.Snap ()
 handleOptions = 
-    allow S.GET allowedOrigins $ do
+    allow S.POST allowedOrigins $ do
     --setCorsHeaders
     modifyResponse $ S.setResponseCode 200
     S.writeBS$ B.pack ""  
@@ -172,7 +172,9 @@ handlePost =
     case Aeson.decode body of
         Just postData -> do
             liftIO $ writeFile (path postData) (content postData)
-            S.writeBS   "Data written successfully"
+            -- S.writeBS   "Data written successfully"
+            liftIO (putStrLn "Data written successfully")
         Nothing -> do
             modifyResponse $ S.setResponseCode 400
-            S.writeBS "Invalid JSON data"
+            -- S.writeBS "Invalid JSON data"
+            liftIO (putStrLn "Invalid JSON data")
