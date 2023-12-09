@@ -26,8 +26,7 @@ import qualified Data.Text as T
 
 allowedOrigins :: [String]
 allowedOrigins =
-  [ "http://localhost:8000"
-  ]
+  [ "http://localhost:8000", "https://*" ]
 
 
 main :: IO ()
@@ -67,9 +66,11 @@ fileAndDirectoryHandler =
             let html = B.pack $ "<html><body>" ++ unlines links ++ "</body></html>"
             modifyResponse $ setContentType $ B.pack "text/html; charset=utf-8"
             S.writeBS html
+            liftIO (putStrLn "Directory read successfully")
     else if isFile 
         then do
             serveResource dirPath
+            liftIO (putStrLn "File served successfully")
     else
             S.writeBS$ B.pack "Not a directory or directory does not exist."
 
@@ -106,7 +107,7 @@ serveResource filePath = do
         ".csv"  -> serveAsText filePath
         ".pdf"  -> serveAsPDF filePath
         _       -> serveAsText filePath
-    S.writeBS"Data read successfully"
+    
 
 
 serveWithMimeType :: B.ByteString -> FilePath -> S.Snap ()
@@ -166,13 +167,12 @@ instance Aeson.FromJSON PostData where
 handlePost :: S.Snap ()
 handlePost = 
     allow S.POST allowedOrigins $ do
-    S.writeBS "Begin processing S.POST request "
     modifyResponse $ S.setHeader "Content-Type" "application/json"
     body <- S.readRequestBody 1000000 -- Max size of the request body
     case Aeson.decode body of
         Just postData -> do
             liftIO $ writeFile (path postData) (content postData)
-            -- S.writeBS   "Data written successfully"
+            S.writeBS   "Data written successfully"
             liftIO (putStrLn "Data written successfully")
         Nothing -> do
             modifyResponse $ S.setResponseCode 400
