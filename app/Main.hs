@@ -26,7 +26,7 @@ import qualified Data.Text as T
 
 allowedOrigins :: [String]
 allowedOrigins =
-  [ "http://localhost:8000", "https://*" ]
+  [ "http://localhost:8000", "https:/dataserver.app" ]
 
 
 main :: IO ()
