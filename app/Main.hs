@@ -42,15 +42,16 @@ main = do
 
 
 site :: String -> S.Snap ()
-site serverDirectory = route [ (B.pack "", S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler), (B.pack "postdata", S.method S.POST handlePost)]
+site serverDirectory = route [ (B.pack "", S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler)
+           ,  (B.pack "postdata", S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost)]
   
 
 handleOptions :: S.Snap ()
-handleOptions = 
-    allow S.POST allowedOrigins $ do
-    --setCorsHeaders
+handleOptions = do
+    liftIO (putStrLn "Entering handleOptions")
+    setCorsHeaders
     modifyResponse $ S.setResponseCode 200
-    S.writeBS$ B.pack ""  
+    S.writeBS $ B.pack ""
 
 fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler = 
