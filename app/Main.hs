@@ -82,6 +82,8 @@ makeLink dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++
 serveAsText :: FilePath -> S.Snap ()
 serveAsText filePath = do
     fileContents <- liftIO $ B.readFile filePath
+    liftIO $ putStrLn $ "Data served from: " ++ filePath
+    liftIO $ putStrLn $ "Data contnets: " ++ B.unpack fileContents
     modifyResponse $ setContentType $ B.pack "text/plain; charset=utf-8"
     S.writeBS fileContents
 
@@ -166,8 +168,9 @@ instance Aeson.FromJSON PostData where
     <*> v Aeson..: "content"
 
 handlePost :: S.Snap ()
-handlePost = 
+handlePost =
     allow S.POST allowedOrigins $ do
+    setCorsHeaders
     modifyResponse $ S.setHeader "Content-Type" "application/json"
     body <- S.readRequestBody 1000000 -- Max size of the request body
     case Aeson.decode body of
