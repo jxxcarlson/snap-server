@@ -42,7 +42,8 @@ main = do
 
 
 site :: String -> S.Snap ()
-site serverDirectory = route [ (B.pack "", S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler)
+site serverDirectory = route
+            [ (B.pack "", S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler)
            ,  (B.pack "postdata", S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost)]
   
 
