@@ -26,7 +26,7 @@ import qualified Data.Text as T
 
 allowedOrigins :: [String]
 allowedOrigins =
-  [ "http://localhost:8000", "https://*" ]
+  [ "https://scripta.io"]
 
 
 main :: IO ()
@@ -178,3 +178,4 @@ handlePost =
             modifyResponse $ S.setResponseCode 400
             -- S.writeBS "Invalid JSON data"
             liftIO (putStrLn "Invalid JSON data")
+
