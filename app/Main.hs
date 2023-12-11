@@ -26,7 +26,7 @@ import qualified Data.Text as T
 
 allowedOrigins :: [String]
 allowedOrigins =
-  [ "http://localhost:8000", "https:/dataserver.app" ]
+  [ "http://localhost:8000", "https://scripta.io" ]
 
 
 main :: IO ()
@@ -51,13 +51,15 @@ handleOptions = do
     liftIO (putStrLn "Entering handleOptions")
     setCorsHeaders
     modifyResponse $ S.setResponseCode 200
-    S.writeBS $ B.pack ""
+    S.writeBS $ B.pack "OPTIONS: handled"
 
 fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler = 
     allow S.GET allowedOrigins $ do
     rq <- S.getRequest
     let dirPath = "." </> B.unpack (S.rqPathInfo rq)
+    S.writeBS $ S.rqPathInfo rq
+    liftIO (putStrLn $ show $ dirPath)
     isFile <- liftIO $ doesFileExist dirPath
     isDir <- liftIO $ doesDirectoryExist dirPath
     if isDir
@@ -73,7 +75,7 @@ fileAndDirectoryHandler =
             serveResource dirPath
             liftIO (putStrLn "File served successfully")
     else
-            S.writeBS$ B.pack "Not a directory or directory does not exist."
+            S.writeBS $ B.pack "Not a directory or directory does not exist."
 
 makeLink :: FilePath -> String -> String
 makeLink dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++ "</a><br>"
@@ -81,6 +83,7 @@ makeLink dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++
 
 serveAsText :: FilePath -> S.Snap ()
 serveAsText filePath = do
+    liftIO (putStrLn "serving TEXT")
     fileContents <- liftIO $ B.readFile filePath
     liftIO $ putStrLn $ "Data served from: " ++ filePath
     liftIO $ putStrLn $ "Data contnets: " ++ B.unpack fileContents
