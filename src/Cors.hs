@@ -9,7 +9,7 @@ import qualified Data.HashSet as HashSet
 import Network.URI (parseURI)
 import Snap.Core (Snap, Method, method)
 import Snap.Util.CORS (CORSOptions(..), HashableMethod(..), OriginList(Origins), applyCORS, mkOriginSet)
-
+import Data.Maybe (fromJust)
 
 
 -- ALLOW
@@ -47,5 +47,5 @@ toOriginList origins =
       Just uris -> uris
       Nothing -> error $ "Invalid entry given to toOriginList list: " ++ show origins
   where
-    parseOrigin "null" = Just "null"
+    parseOrigin "null" = Just (fromJust $ parseURI "http://null")
     parseOrigin uri = parseURI uri
