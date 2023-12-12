@@ -43,6 +43,9 @@ toOptions method_ origins =
 toOriginList :: [String] -> OriginList
 toOriginList origins =
   Origins $ mkOriginSet $
-    case traverse parseURI origins of
+    case traverse parseOrigin origins of
       Just uris -> uris
       Nothing -> error $ "Invalid entry given to toOriginList list: " ++ show origins
+  where
+    parseOrigin "null" = Just "null"
+    parseOrigin uri = parseURI uri
