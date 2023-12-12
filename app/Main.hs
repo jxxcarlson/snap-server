@@ -79,6 +79,8 @@ fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler =
     Cors.allow S.GET allowedOrigins $ do
     rq <- S.getRequest
+    liftIO (putStrLn $ "rqPathInfo: " ++ show (S.rqPathInfo rq))
+    liftIO (hFlush stdout)
     let dirPath = "." </> B.unpack (S.rqPathInfo rq)
     liftIO (putStrLn $ show $ dirPath)
     liftIO (hFlush stdout)
