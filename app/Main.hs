@@ -52,7 +52,7 @@ site serverDirectory = do
         , (B.pack "foo", logRoute "foo" >> (S.method S.OPTIONS handleOptions))
         , (B.pack "postdata", logRoute "postdata" >> (S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost))
         ]
-    liftIO $ putStrLn "Finished site function"
+    liftIO $ putStrLn "Finished site function\n"
 
 
 logRoute :: String -> S.Snap ()
