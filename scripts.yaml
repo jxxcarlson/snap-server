@@ -2,7 +2,16 @@ scripts:
 
   test-option: 'curl -X OPTIONS -H "Origin: http://localhost:8000" -H "Access-Control-Request-Method: POST" http://localhost:8080/postdata -i'
   
-  log: cat log/access.log
-  log-err: cat log/error.log
-  clear: cat >log/access.log
+  start: docserver/localServer/server.ts
+  file_server: file_server -p 8080 file_server
+  du: sh scripts/du.sh
+  dudot: bash scripts/dudot.sh
+  log: tail /var/log/nginx/access.log
+  err: tail /var/log/nginx/error,log
+  clear: cat > /var/log/nginx/access.log
+  clear-err: cat > /var/log/nginx/error,log
+  ls: ls /var/www/dataserver/data
+  edit: vim /root/dataServer/snap-server/app/Main.hs
+  edit-server: vim /etc/nginx/sites-enabled/dataserver
+  live: ping dataserv.app
 

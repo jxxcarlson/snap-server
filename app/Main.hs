@@ -75,33 +75,40 @@ setCorsHeaders = modifyResponse $ do
     S.addHeader (mk $ B.pack "Access-Control-Allow-Methods") (B.pack "GET, POST, OPTIONS")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Headers") (B.pack "Origin, Accept, Content-Type")
 
+
 fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler =
     Cors.allow S.GET allowedOrigins $ do
     rq <- S.getRequest
-    liftIO (putStrLn $ "rqPathInfo: " ++ show (S.rqPathInfo rq))
+    let rqPath = S.rqPathInfo rq
+    liftIO (putStrLn $ "rqPathInfo: " ++ show rqPath)
     liftIO (hFlush stdout)
-    let dirPath = "." </> B.unpack (S.rqPathInfo rq)
-    liftIO (putStrLn $ show $ dirPath)
-    liftIO (hFlush stdout)
-    isFile <- liftIO $ doesFileExist dirPath
-    isDir <- liftIO $ doesDirectoryExist dirPath
-    if isDir
-        then do
-            contents <- liftIO $ listDirectory dirPath
-            let links = map (makeLink dirPath) contents
-            let html = B.pack $ "<html><body>" ++ unlines links ++ "</body></html>"
-            modifyResponse $ setContentType $ B.pack "text/html; charset=utf-8"
-            S.writeBS html
-            liftIO (putStrLn "Directory read successfully")
+    if B.null rqPath
+        then liftIO (putStrLn "Received empty path")
+        else do
+            let dirPath = "." </> B.unpack rqPath
+            liftIO (putStrLn $ "Directory path: " ++ dirPath)
             liftIO (hFlush stdout)
-    else if isFile
-        then do
-            serveResource dirPath
-            liftIO (putStrLn "File served successfully")
-            liftIO (hFlush stdout)
-    else
-            S.writeBS $ B.pack "Not a directory or directory does not exist."
+            isFile <- liftIO $ doesFileExist dirPath
+            isDir <- liftIO $ doesDirectoryExist dirPath
+            if isDir
+              then do
+                  contents <- liftIO $ listDirectory dirPath
+                  let links = map (makeLink dirPath) contents
+                  let html = B.pack $ "<html><body>" ++ unlines links ++ "</body></html>"
+                  modifyResponse $ setContentType $ B.pack "text/html; charset=utf-8"
+                  S.writeBS html
+                  liftIO (putStrLn "Directory read successfully")
+                  liftIO (hFlush stdout)
+            else if isFile
+                then do
+                    serveResource dirPath
+                    liftIO (putStrLn "File served successfully")
+                    liftIO (hFlush stdout)
+            else
+                  S.writeBS $ B.pack "Not a directory or directory does not exist."
+
+
 
 makeLink :: FilePath -> String -> String
 makeLink dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++ "</a><br>"
