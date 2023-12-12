@@ -48,8 +48,7 @@ site :: String -> S.Snap ()
 site serverDirectory = do
     liftIO $ putStrLn "Starting site function"
     route
-        [ -- (B.pack "", logRoute "(get)" >> (S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler))
-          (B.pack "", logRoute "(get)" >> fileAndDirectoryHandler)
+        [ (B.pack "", logRoute "(get)" >> (S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler))
         , (B.pack "foo", logRoute "foo" >> (S.method S.OPTIONS handleOptions))
         , (B.pack "postdata", logRoute "postdata" >> (S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost))
         ]
@@ -166,6 +165,8 @@ instance Aeson.FromJSON PostData where
 handlePost :: S.Snap ()
 handlePost =
     Cors.allow S.POST allowedOrigins $ do
+    liftIO (putStrLn "Enter: handlePost")
+    liftIO (hFlush stdout)
     setCorsHeaders
     liftIO (putStrLn "Enter: handlePost")
     liftIO (hFlush stdout)
