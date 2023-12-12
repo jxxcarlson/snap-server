@@ -45,4 +45,4 @@ toOriginList origins =
   Origins $ mkOriginSet $
     case traverse parseURI origins of
       Just uris -> uris
-      Nothing -> error "invalid entry given to toOriginList list"
+      Nothing -> error $ "Invalid entry given to toOriginList list: " ++ show origins
