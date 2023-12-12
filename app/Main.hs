@@ -25,10 +25,11 @@ import System.IO (hFlush, stdout)
 -- curl -X OPTIONS -H "Origin: http://localhost:8000" -H "Access-Control-Request-Method: POST" http://localhost:8080/postdata -i\n
 -- curl -X OPTIONS -H "Origin: http://localhost:8000" -H "Access-Control-Request-Method: POST" http://localhost:8080/foo -i\n
 
+
+
 allowedOrigins :: [String]
 allowedOrigins =
-  [ "http://localhost:8000", "https://scripta.io" ]
-
+  [ "http://localhost:8000", "https://scripta.io", "null" ]
 
 main :: IO ()
 main = do
@@ -151,28 +152,6 @@ instance Aeson.FromJSON PostData where
   parseJSON = Aeson.withObject "PostData" $ \v -> PostData
     <$> v Aeson..: "path"
     <*> v Aeson..: "content"
-
---handlePost :: S.Snap ()
---handlePost =
---    Cors.allow S.POST allowedOrigins $ do
---    liftIO (putStrLn "Enter: handlePost")
---    liftIO (hFlush stdout)
---    setCorsHeaders
---    modifyResponse $ S.setHeader "Content-Type" "application/json"
---    body <- S.readRequestBody 1000000 -- Max size of the request body
---    case Aeson.decode body of
---        Just postData -> do
---            liftIO (putStrLn "About to write data")
---            liftIO (hFlush stdout)
---            liftIO $ writeFile (path postData) (content postData)
---            S.writeBS   "Data written successfully"
---            liftIO (putStrLn "Data written successfully")
---            liftIO (hFlush stdout)
---        Nothing -> do
---            modifyResponse $ S.setResponseCode 400
---            S.writeBS "Invalid JSON data"
---            liftIO (putStrLn "Invalid JSON data")
---            liftIO (hFlush stdout)
 
 handlePost :: S.Snap ()
 handlePost =
