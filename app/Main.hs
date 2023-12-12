@@ -75,11 +75,10 @@ setCorsHeaders = modifyResponse $ do
     S.addHeader (mk $ B.pack "Access-Control-Allow-Headers") (B.pack "Origin, Accept, Content-Type")
 
 fileAndDirectoryHandler :: S.Snap ()
-fileAndDirectoryHandler = 
+fileAndDirectoryHandler =
     Cors.allow S.GET allowedOrigins $ do
     rq <- S.getRequest
     let dirPath = "." </> B.unpack (S.rqPathInfo rq)
-    S.writeBS $ S.rqPathInfo rq
     liftIO (putStrLn $ show $ dirPath)
     liftIO (hFlush stdout)
     isFile <- liftIO $ doesFileExist dirPath
@@ -93,7 +92,7 @@ fileAndDirectoryHandler =
             S.writeBS html
             liftIO (putStrLn "Directory read successfully")
             liftIO (hFlush stdout)
-    else if isFile 
+    else if isFile
         then do
             serveResource dirPath
             liftIO (putStrLn "File served successfully")
@@ -104,14 +103,9 @@ fileAndDirectoryHandler =
 makeLink :: FilePath -> String -> String
 makeLink dirPath file = "<a href='" ++ dirPath ++ "/" ++ file ++ "'>" ++ file ++ "</a><br>"
 
-
 serveAsText :: FilePath -> S.Snap ()
 serveAsText filePath = do
-    liftIO (putStrLn "serving TEXT")
-    liftIO (hFlush stdout)
     fileContents <- liftIO $ B.readFile filePath
-    liftIO $ putStrLn $ "Data served from: " ++ filePath
-    liftIO $ putStrLn $ "Data contents: " ++ B.unpack fileContents
     modifyResponse $ setContentType $ B.pack "text/plain; charset=utf-8"
     S.writeBS fileContents
 
@@ -158,13 +152,34 @@ instance Aeson.FromJSON PostData where
     <$> v Aeson..: "path"
     <*> v Aeson..: "content"
 
+--handlePost :: S.Snap ()
+--handlePost =
+--    Cors.allow S.POST allowedOrigins $ do
+--    liftIO (putStrLn "Enter: handlePost")
+--    liftIO (hFlush stdout)
+--    setCorsHeaders
+--    modifyResponse $ S.setHeader "Content-Type" "application/json"
+--    body <- S.readRequestBody 1000000 -- Max size of the request body
+--    case Aeson.decode body of
+--        Just postData -> do
+--            liftIO (putStrLn "About to write data")
+--            liftIO (hFlush stdout)
+--            liftIO $ writeFile (path postData) (content postData)
+--            S.writeBS   "Data written successfully"
+--            liftIO (putStrLn "Data written successfully")
+--            liftIO (hFlush stdout)
+--        Nothing -> do
+--            modifyResponse $ S.setResponseCode 400
+--            S.writeBS "Invalid JSON data"
+--            liftIO (putStrLn "Invalid JSON data")
+--            liftIO (hFlush stdout)
+
 handlePost :: S.Snap ()
 handlePost =
     Cors.allow S.POST allowedOrigins $ do
+    setCorsHeaders
     liftIO (putStrLn "Enter: handlePost")
     liftIO (hFlush stdout)
-    setCorsHeaders
-    modifyResponse $ S.setHeader "Content-Type" "application/json"
     body <- S.readRequestBody 1000000 -- Max size of the request body
     case Aeson.decode body of
         Just postData -> do
@@ -176,7 +191,6 @@ handlePost =
             liftIO (hFlush stdout)
         Nothing -> do
             modifyResponse $ S.setResponseCode 400
-            -- S.writeBS "Invalid JSON data"
+            S.writeBS "Invalid JSON data"
             liftIO (putStrLn "Invalid JSON data")
             liftIO (hFlush stdout)
-
