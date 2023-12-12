@@ -1,4 +1,0 @@
-127.0.0.1 - - [11/Dec/2023:12:11:43 -0500] "GET /data/foo/bar/h.csv HTTP/1.1" 200 233 "http://localhost:8000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-127.0.0.1 - - [11/Dec/2023:12:15:49 -0500] "OPTIONS /postdata HTTP/1.1" 200 5 - "curl/8.1.2"
-127.0.0.1 - - [11/Dec/2023:12:19:25 -0500] "GET /data/foo/bar/h.csv HTTP/1.1" 200 233 "http://localhost:8000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-127.0.0.1 - - [11/Dec/2023:12:43:06 -0500] "GET /data/foo/bar/h.csv HTTP/1.1" 200 233 "http://localhost:8000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"

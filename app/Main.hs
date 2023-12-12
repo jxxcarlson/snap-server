@@ -5,10 +5,10 @@ module Main where
 import qualified Snap as S
 import Snap.Http.Server (httpServe, defaultConfig, setPort)
 import Snap.Core (route, modifyResponse, setContentType)
-import Snap.Util.FileServe (serveDirectory, serveFile)
+import Snap.Util.FileServe (serveFile)
 import Snap.Util.CORS (CORSOptions(..), HashableMethod(..), OriginList(Origins), applyCORS, mkOriginSet)
 import qualified Data.ByteString.Char8 as B
-import System.FilePath (takeExtension, takeFileName, (</>))
+import System.FilePath (takeExtension, (</>))
 import System.Directory (listDirectory, doesFileExist, doesDirectoryExist)
 import Control.Monad.IO.Class (liftIO)
 import System.Environment (getArgs)
@@ -18,11 +18,12 @@ import Data.CaseInsensitive (mk)
 import qualified Data.HashSet as HashSet
 import Network.URI (parseURI)
 import qualified Data.Aeson as Aeson
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Text as T
+import qualified Data.Text ()
+import qualified Cors
 import System.IO (hFlush, stdout)
 
-
+-- curl -X OPTIONS -H "Origin: http://localhost:8000" -H "Access-Control-Request-Method: POST" http://localhost:8080/postdata -i\n
+-- curl -X OPTIONS -H "Origin: http://localhost:8000" -H "Access-Control-Request-Method: POST" http://localhost:8080/foo -i\n
 
 allowedOrigins :: [String]
 allowedOrigins =
@@ -41,18 +42,30 @@ main = do
             _ -> putStrLn "command takes exactly two args, <port> and <server root directory>"
 
 
-site :: String -> S.Snap ()
-site serverDirectory = route
-            [ (B.pack "", S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler)
-           ,  (B.pack "postdata", S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost)]
-  
 
+site :: String -> S.Snap ()
+site serverDirectory = do
+    liftIO $ putStrLn "Starting site function"
+    route
+        [ (B.pack "", logRoute "" >> (S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler))
+        , (B.pack "foo", logRoute "foo" >> (S.method S.OPTIONS handleOptions))
+        , (B.pack "postdata", logRoute "postdata" >> (S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost))
+        ]
+    liftIO $ putStrLn "Finished site function"
+
+
+logRoute :: String -> S.Snap ()
+logRoute route = liftIO $ putStrLn $ "Accessing route: " ++ route
 
 
 handleOptions :: S.Snap ()
 handleOptions = do
+    liftIO (putStrLn "Enter: handleOptions")
+    liftIO (hFlush stdout)
     setCorsHeaders
     modifyResponse $ S.setResponseCode 200
+    liftIO (putStrLn "Exit: handleOptions")
+    liftIO (hFlush stdout)
     S.writeBS $ B.pack ""
 
 setCorsHeaders :: S.Snap ()
@@ -63,7 +76,7 @@ setCorsHeaders = modifyResponse $ do
 
 fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler = 
-    allow S.GET allowedOrigins $ do
+    Cors.allow S.GET allowedOrigins $ do
     rq <- S.getRequest
     let dirPath = "." </> B.unpack (S.rqPathInfo rq)
     S.writeBS $ S.rqPathInfo rq
@@ -98,7 +111,7 @@ serveAsText filePath = do
     liftIO (hFlush stdout)
     fileContents <- liftIO $ B.readFile filePath
     liftIO $ putStrLn $ "Data served from: " ++ filePath
-    liftIO $ putStrLn $ "Data contnets: " ++ B.unpack fileContents
+    liftIO $ putStrLn $ "Data contents: " ++ B.unpack fileContents
     modifyResponse $ setContentType $ B.pack "text/plain; charset=utf-8"
     S.writeBS fileContents
 
@@ -133,38 +146,6 @@ serveWithMimeType mimeType filePath = do
     modifyResponse $ setContentType mimeType
     serveFile filePath
 
-
--- CORS
-
-
-
-
-allow :: S.Method -> [String] -> S.Snap () -> S.Snap ()
-allow method_ origins snap = 
-  applyCORS (toOptions method_ origins) $ S.method method_ snap
-
-toOptions :: (Monad m) => S.Method -> [String] -> CORSOptions m
-toOptions method_ origins =
-  let
-    allowedOrigins = toOriginList origins
-    allowedMethods = HashSet.singleton (HashableMethod method_)
-  in
-  CORSOptions
-    { corsAllowOrigin = return allowedOrigins
-    , corsAllowCredentials = return True
-    , corsExposeHeaders = return HashSet.empty
-    , corsAllowedMethods = return allowedMethods
-    , corsAllowedHeaders = return
-    }
-
-
-toOriginList :: [String] -> OriginList
-toOriginList origins =
-  Origins $ mkOriginSet $
-    case traverse parseURI origins of
-      Just uris -> uris
-      Nothing -> error "invalid entry given to toOriginList list"
-
 -- POST Data
 
 data PostData = PostData
@@ -179,7 +160,7 @@ instance Aeson.FromJSON PostData where
 
 handlePost :: S.Snap ()
 handlePost =
-    allow S.POST allowedOrigins $ do
+    Cors.allow S.POST allowedOrigins $ do
     liftIO (putStrLn "Enter: handlePost")
     liftIO (hFlush stdout)
     setCorsHeaders

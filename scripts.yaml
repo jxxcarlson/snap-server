@@ -1,0 +1,8 @@
+scripts:
+
+  test-option: 'curl -X OPTIONS -H "Origin: http://localhost:8000" -H "Access-Control-Request-Method: POST" http://localhost:8080/postdata -i'
+  
+  log: cat log/access.log
+  log-err: cat log/error.log
+  clear: cat >log/access.log
+
