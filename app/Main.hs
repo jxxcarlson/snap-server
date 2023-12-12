@@ -86,7 +86,8 @@ fileAndDirectoryHandler =
     if B.null rqPath
         then liftIO (putStrLn "Received empty path")
         else do
-            let dirPath = "." </> B.unpack rqPath
+            let dirPath = "/var/www/dataserver/data" </> B.unpack rqPath
+
             liftIO (putStrLn $ "Directory path: " ++ dirPath)
             liftIO (hFlush stdout)
             isFile <- liftIO $ doesFileExist dirPath
