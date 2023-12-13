@@ -75,8 +75,6 @@ setCorsHeaders = modifyResponse $ do
     S.addHeader (mk $ B.pack "Access-Control-Allow-Methods") (B.pack "GET, POST, OPTIONS")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Headers") (B.pack "Origin, Accept, Content-Type")
 
-
-
 fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler =
     Cors.allow S.GET allowedOrigins $ do
@@ -168,8 +166,6 @@ instance Aeson.FromJSON PostData where
 handlePost :: S.Snap ()
 handlePost =
   Cors.allow S.POST allowedOrigins $ do
-    liftIO (putStrLn "Enter: handlePost")
-    liftIO (hFlush stdout)
     setCorsHeaders
     liftIO (putStrLn "Enter: handlePost")
     liftIO (hFlush stdout)
