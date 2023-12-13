@@ -90,6 +90,8 @@ fileAndDirectoryHandler =
             liftIO (putStrLn $ "Directory path: " ++ dirPath)
             liftIO (hFlush stdout)
             isFile <- liftIO $ doesFileExist dirPath
+            liftIO (putStrLn $ "isFile: " ++ show isFile)
+            liftIO (hFlush stdout)
             isDir <- liftIO $ doesDirectoryExist dirPath
             if isDir
               then do
@@ -168,15 +170,15 @@ handlePost =
     liftIO (putStrLn "Enter: handlePost")
     liftIO (hFlush stdout)
     setCorsHeaders
-    liftIO (putStrLn "Enter: handlePost")
+    liftIO (putStrLn "Cors headers set")
     liftIO (hFlush stdout)
     body <- S.readRequestBody 1000000 -- Max size of the request body
     case Aeson.decode body of
         Just postData -> do
-            liftIO (putStrLn "About to write data")
+            liftIO (putStrLn $ "About to write data to " ++ show (path postData))
             liftIO (hFlush stdout)
             liftIO $ writeFile (path postData) (content postData)
-            S.writeBS   "Data written successfully"
+            S.writeBS "Data written successfully"
             liftIO (putStrLn "Data written successfully")
             liftIO (hFlush stdout)
         Nothing -> do
