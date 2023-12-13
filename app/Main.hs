@@ -50,7 +50,7 @@ site serverDirectory = do
     route
         [ (B.pack "", logRoute "(get)" >> fileAndDirectoryHandler)
         , (B.pack "foo", logRoute "foo" >> (S.method S.OPTIONS handleOptions))
-        , (B.pack "postdata", logRoute "postdata" >> (S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost))
+        , (B.pack "postdata", logRoute "postdata" >> S.method S.POST handlePost)
         ]
     liftIO $ putStrLn "Finished site function\n"
 
