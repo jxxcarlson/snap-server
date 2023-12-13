@@ -174,7 +174,7 @@ handlePost =
     body <- S.readRequestBody 1000000 -- Max size of the request body
     case Aeson.decode body of
         Just postData -> do
-            liftIO (putStrLn "About to write data")
+            liftIO (putStrLn $ "About to write data to " ++ show (path postData))
             liftIO (hFlush stdout)
             liftIO $ writeFile (path postData) (content postData)
             S.writeBS   "Data written successfully"
