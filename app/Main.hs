@@ -71,9 +71,10 @@ handleOptions = do
 
 setCorsHeaders :: S.Snap ()
 setCorsHeaders = modifyResponse $ do
---    S.addHeader (mk $ B.pack "Access-Control-Allow-Origin") (B.pack "*")
+    S.addHeader (mk $ B.pack "Access-Control-Allow-Origin") (B.pack "*")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Methods") (B.pack "GET, POST, OPTIONS")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Headers") (B.pack "Origin, Accept, Content-Type")
+
 
 
 fileAndDirectoryHandler :: S.Snap ()
