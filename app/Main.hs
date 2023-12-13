@@ -48,7 +48,7 @@ site :: String -> S.Snap ()
 site serverDirectory = do
     liftIO $ putStrLn "Starting site function"
     route
-        [ (B.pack "", logRoute "(get)" >> (S.method S.OPTIONS handleOptions <|> fileAndDirectoryHandler))
+        [ (B.pack "", logRoute "(get)" >> fileAndDirectoryHandler)
         , (B.pack "foo", logRoute "foo" >> (S.method S.OPTIONS handleOptions))
         , (B.pack "postdata", logRoute "postdata" >> (S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost))
         ]
@@ -71,7 +71,7 @@ handleOptions = do
 
 setCorsHeaders :: S.Snap ()
 setCorsHeaders = modifyResponse $ do
-    S.addHeader (mk $ B.pack "Access-Control-Allow-Origin") (B.pack "*")
+--    S.addHeader (mk $ B.pack "Access-Control-Allow-Origin") (B.pack "*")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Methods") (B.pack "GET, POST, OPTIONS")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Headers") (B.pack "Origin, Accept, Content-Type")
 
@@ -91,7 +91,8 @@ fileAndDirectoryHandler =
             liftIO (putStrLn $ "Directory path: " ++ dirPath)
             liftIO (hFlush stdout)
             isFile <- liftIO $ doesFileExist dirPath
-            isDir <- liftIO $ doesDirectoryExist dirPath
+	    liftIO (putStrLn $ "isFile: " ++ show isFile)
+	    isDir <- liftIO $ doesDirectoryExist dirPath
             if isDir
               then do
                   contents <- liftIO $ listDirectory dirPath
