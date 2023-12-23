@@ -14,4 +14,4 @@ scripts:
   edit: vim /root/dataServer/snap-server/app/Main.hs
   edit-server: vim /etc/nginx/sites-enabled/dataserver
   live: ping dataserv.app
-
+  edit-conf: vim /etc/nginx/nginx.conf
