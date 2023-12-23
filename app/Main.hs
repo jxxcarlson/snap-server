@@ -29,7 +29,7 @@ import System.IO (hFlush, stdout)
 
 allowedOrigins :: [String]
 allowedOrigins =
-  [ "https://scripta.io" ]
+  [ "localHost:8000", "https://scripta.io" ]
 
 
 main :: IO ()
@@ -51,9 +51,11 @@ site serverDirectory = do
     route
         [ (B.pack "", logRoute "(get)" >> fileAndDirectoryHandler)
         , (B.pack "foo", logRoute "foo" >> (S.method S.OPTIONS handleOptions))
-        , (B.pack "list", listFiles)
+        --, (B.pack "list", (S.method S.OPTIONS handleOptions <|> listFiles))
+        --, (B.pack "list", (S.method S.OPTIONS handleOptions <|> setCorsHeaders >> listFiles))
+        , (B.pack "list", (listFiles))
         , (B.pack "postdata", logRoute "postdata" >> (S.method S.OPTIONS handleOptions <|> S.method S.POST handlePost))
-	]
+      ]
     liftIO $ putStrLn "Finished site function\n"
 
 
@@ -77,13 +79,17 @@ setCorsHeaders = modifyResponse $ do
     S.addHeader (mk $ B.pack "Access-Control-Allow-Methods") (B.pack "GET, POST, OPTIONS")
     S.addHeader (mk $ B.pack "Access-Control-Allow-Headers") (B.pack "Origin, Accept, Content-Type")
 
- -- Handler to list files in the current directory
+
+
 listFiles :: S.Snap ()
-listFiles = do
+listFiles =
+  Cors.allow S.GET allowedOrigins $ do
+    setCorsHeaders
     files <- liftIO (listDirectory "./data")
     let fileList =  B.pack $ unlines files
+    liftIO (putStrLn "Writing: file list")
+    liftIO (hFlush stdout)
     S.writeBS fileList
-
 
 fileAndDirectoryHandler :: S.Snap ()
 fileAndDirectoryHandler =
@@ -95,7 +101,8 @@ fileAndDirectoryHandler =
     if B.null rqPath
         then liftIO (putStrLn "Received empty path")
         else do
-            let dirPath = "/var/www/dataserver/data" </> B.unpack rqPath
+            -- let dirPath = "/var/www/dataserver/data" </> B.unpack rqPath
+            let dirPath = "./data" </> B.unpack rqPath
 
             liftIO (putStrLn $ "Directory path: " ++ dirPath)
             liftIO (hFlush stdout)
